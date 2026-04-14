@@ -1,0 +1,71 @@
+{
+  "nav": [
+    {
+      "name": "Http",
+      "route": "content",
+      "params": {
+        "slug": "http"
+      }
+    },
+    {
+      "name": "Mqtt",
+      "route": "content",
+      "params": {
+        "slug": "mqtt"
+      }
+    },
+    {
+      "name": "Compare",
+      "route": "compare",
+      "params": {}
+    }
+  ],
+  "tags": {
+    "http": ["Stateless", "Request/Response", "Human-Readable"],
+    "mqtt": ["Stateful", "Publish/Subscribe", "Lightweight", "Reliable"]
+  },
+  "views": [
+    {
+      "name": "http",
+      "content": [
+        {
+          "text": "HTTP (Hypertext Transfer Protocol) is the primary protocol enabling communication over the World Wide Web. It relies on a request-response model, where a client, like a web browser, sends a request to a server, which then processes the request and sends back a response. This process is stateless, meaning each request is independent and does not rely on previous communications. HTTP typically operates over TCP (Transmission Control Protocol) and is commonly used to transfer HTML documents, images, and other resources necessary for web pages.",
+          "image": "contentHttp"
+        },
+        {
+          "text": "While HTTP excels in web-based communication and is a cornerstone of modern internet usage, it has limitations in scenarios requiring low bandwidth, minimal latency, or continuous data streams. These characteristics make HTTP less suited for Internet of Things (IoT) applications, where resource-constrained devices often require lightweight and efficient communication. Each HTTP request involves setting up a connection, which can add overhead in terms of both time and resources. Additionally, HTTP is inherently unidirectional; clients must initiate all communication, which can be inefficient for scenarios requiring real-time updates or bidirectional communication.",
+          "image": null
+        },
+        {
+          "text": "HTTP (Hypertext Transfer Protocol) is the primary protocol enabling communication over the World Wide Web. It relies on a request-response model, where a client, like a web browser, sends a request to a server, which then processes the request and sends back a response. This process is stateless, meaning each request is independent and does not rely on previous communications. HTTP typically operates over TCP (Transmission Control Protocol) and is commonly used to transfer HTML documents, images, and other resources necessary for web pages.",
+          "image": null
+        },
+        {
+          "text": "Nevertheless, HTTP remains one of the most widely used protocols globally, given its widespread infrastructure and the familiarity developers have with it. For applications like web browsing, APIs, and traditional web services, HTTP is often the protocol of choice. Furthermore, modern advancements like HTTP/2 and HTTP/3 aim to address some of its inefficiencies by introducing features such as multiplexing and reduced latency.",
+          "image": null
+        }
+      ]
+    },
+    {
+      "name": "mqtt",
+      "content": [
+        {
+          "text": "MQTT (Message Queuing Telemetry Transport) is a lightweight messaging protocol specifically designed for low-bandwidth, high-latency, or unreliable networks. It operates on a publish/subscribe model, where devices (clients) publish messages to a broker under specific topics, and other devices subscribe to those topics to receive updates. This decoupled architecture allows for efficient and flexible communication, particularly in Internet of Things (IoT) environments, where devices often have limited resources and need to transmit data continuously or in real-time.",
+          "image": "contentMqtt"
+        },
+        {
+          "text": "Unlike HTTP's request-response mechanism, MQTT enables continuous bidirectional communication between clients and brokers. This makes it ideal for applications requiring real-time updates, such as industrial monitoring, home automation, and vehicle tracking systems. MQTT messages are compact, consisting of minimal overhead, which reduces bandwidth consumption and improves performance on constrained networks. Additionally, MQTT supports Quality of Service (QoS) levels, allowing users to balance reliability and network efficiency based on their specific use case. For example, QoS levels can ensure that messages are delivered at least once or exactly once, depending on the desired reliability.",
+          "image": null
+        },
+        {
+          "text": "One of MQTT's key advantages is its persistent connection to the broker. Once a connection is established, devices can send and receive messages without the need to repeatedly initiate new connections, as HTTP often requires. This makes MQTT significantly more efficient in scenarios where devices need to maintain continuous communication, such as IoT sensors streaming environmental data or wearable devices reporting health metrics. Moreover, the protocol's support for retained messages and \"last will and testament\" features ensures that subscribers can receive the most recent updates even after a temporary disconnection.",
+          "image": null
+        },
+        {
+          "text": "Given its design for efficiency and flexibility, MQTT has become a preferred protocol in IoT and Industrial IoT (IIoT) applications. It is particularly well-suited for environments where power, bandwidth, or computational resources are limited. While HTTP is better for traditional web services and APIs, MQTT excels in scenarios where lightweight, real-time, and bidirectional communication is essential. This has made MQTT a cornerstone in smart cities, connected vehicles, and other innovative IoT solutions, where it provides a seamless way to exchange data between devices.",
+          "image": null
+        }
+      ]
+    }
+  ]
+}

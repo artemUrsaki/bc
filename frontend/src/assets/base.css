@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100vh;
+    line-height: 2rem;
+    color: #fff;
+    background: #000c1a;
+    transition:
+      color 0.5s,
+      background-color 0.5s;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a {
+    color: #fff;
+    text-decoration: none;
+    transition: 0.3s;
+    cursor: pointer;
+  }
+
+  @media (hover: hover) {
+    a:hover {
+      color: #0077ff;
+    }
+  }
+
+  h1 {
+    font-weight: bold;
+    font-size: 3rem;
+    line-height: 1;
+  }
+
+  h2 {
+    font-weight: bold;
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  section {
+    padding: 100px 3rem;
+  }
+
+  svg {
+    fill: white;
+    width: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    h1 {
+      font-size: 6rem;
+    }
+
+    h2 {
+      font-size: 4rem;
+    }
+
+    body {
+      font-size: 18px;
+    }
+
+    section {
+      padding: 200px 3rem;
+    }
+  }
+}
+
+#app {
+  min-height: inherit;
+  padding-top: 100px;
+  display: flex;
+  flex-direction: column;
+}
+
+a.router-link-exact-active {
+  color: #0077ff;
+}
