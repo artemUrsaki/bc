@@ -6,13 +6,16 @@ use App\Models\Run;
 use App\Models\RunAggregate;
 use App\Models\RunEvent;
 use App\Models\Sample;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
 it('creates a run and dispatches execution job', function (): void {
     Queue::fake();
+    Sanctum::actingAs(User::factory()->create());
 
     $experiment = Experiment::query()->create([
         'name' => 'HTTP throughput experiment',
@@ -41,6 +44,17 @@ it('creates a run and dispatches execution job', function (): void {
     Queue::assertPushed(ExecuteRunJob::class, function (ExecuteRunJob $job) use ($runId): bool {
         return $job->runId === $runId;
     });
+});
+
+it('rejects unauthenticated run creation', function (): void {
+    $experiment = Experiment::query()->create([
+        'name' => 'Protected run experiment',
+        'default_protocol' => 'http',
+    ]);
+
+    $this->postJson('/api/v1/runs', [
+        'experiment_id' => $experiment->id,
+    ])->assertUnauthorized();
 });
 
 it('returns run details including aggregate when present', function (): void {
@@ -75,6 +89,7 @@ it('returns run details including aggregate when present', function (): void {
 
 it('applies a scenario template and stores an environment snapshot', function (): void {
     Queue::fake();
+    Sanctum::actingAs(User::factory()->create());
 
     $experiment = Experiment::query()->create([
         'name' => 'HTTP scenario experiment',
@@ -100,6 +115,7 @@ it('applies a scenario template and stores an environment snapshot', function ()
 
 it('rejects invalid config keys for the selected protocol', function (): void {
     Queue::fake();
+    Sanctum::actingAs(User::factory()->create());
 
     $experiment = Experiment::query()->create([
         'name' => 'Strict config experiment',
@@ -117,6 +133,7 @@ it('rejects invalid config keys for the selected protocol', function (): void {
 
 it('rejects an unavailable scenario for the selected protocol', function (): void {
     Queue::fake();
+    Sanctum::actingAs(User::factory()->create());
 
     $experiment = Experiment::query()->create([
         'name' => 'Scenario validation experiment',
@@ -255,6 +272,8 @@ it('returns stored run events ordered by time', function (): void {
 });
 
 it('exports run data as json', function (): void {
+    Sanctum::actingAs(User::factory()->create());
+
     $experiment = Experiment::query()->create([
         'name' => 'JSON export experiment',
         'default_protocol' => 'http',
@@ -301,7 +320,25 @@ it('exports run data as json', function (): void {
         ->assertJsonCount(1, 'data.samples');
 });
 
+it('rejects unauthenticated run export', function (): void {
+    $experiment = Experiment::query()->create([
+        'name' => 'Protected export experiment',
+        'default_protocol' => 'http',
+    ]);
+
+    $run = Run::query()->create([
+        'experiment_id' => $experiment->id,
+        'protocol' => 'http',
+        'status' => Run::STATUS_COMPLETED,
+    ]);
+
+    $this->getJson("/api/v1/runs/{$run->id}/export?format=json")
+        ->assertUnauthorized();
+});
+
 it('exports run samples as csv', function (): void {
+    Sanctum::actingAs(User::factory()->create());
+
     $experiment = Experiment::query()->create([
         'name' => 'CSV export experiment',
         'default_protocol' => 'http',
@@ -328,4 +365,24 @@ it('exports run samples as csv', function (): void {
     $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
     expect($response->streamedContent())->toContain('sample_id,run_id,sequence_no');
     expect($response->streamedContent())->toContain((string) $run->id);
+});
+
+it('rate limits benchmark run creation', function (): void {
+    Queue::fake();
+    Sanctum::actingAs(User::factory()->create());
+
+    $experiment = Experiment::query()->create([
+        'name' => 'Rate limit experiment',
+        'default_protocol' => 'http',
+    ]);
+
+    for ($i = 0; $i < 10; $i++) {
+        $this->postJson('/api/v1/runs', [
+            'experiment_id' => $experiment->id,
+        ])->assertCreated();
+    }
+
+    $this->postJson('/api/v1/runs', [
+        'experiment_id' => $experiment->id,
+    ])->assertStatus(429);
 });

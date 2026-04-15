@@ -19,16 +19,19 @@ Route::prefix('v1')->group(function (): void {
     Route::get('/devices/{device}/measurements', [MeasurementController::class, 'index']);
 
     Route::get('/experiments', [ExperimentController::class, 'index']);
-    Route::post('/experiments', [ExperimentController::class, 'store']);
     Route::get('/experiments/{experiment}', [ExperimentController::class, 'show']);
 
     Route::get('/runs', [RunController::class, 'index']);
-    Route::post('/runs', [RunController::class, 'store']);
     Route::get('/runs/{run}', [RunController::class, 'show']);
     Route::get('/runs/{run}/aggregates', [RunController::class, 'aggregates']);
     Route::get('/runs/{run}/samples', [RunController::class, 'samples']);
     Route::get('/runs/{run}/events', [RunController::class, 'events']);
-    Route::get('/runs/{run}/export', [RunController::class, 'export']);
+ 
+    Route::middleware(['auth:sanctum', 'throttle:benchmark-control'])->group(function (): void {
+        Route::post('/experiments', [ExperimentController::class, 'store']);
+        Route::post('/runs', [RunController::class, 'store']);
+        Route::get('/runs/{run}/export', [RunController::class, 'export']);
+    });
 
     Route::match(['GET', 'POST'], '/probe/http-echo', [ProbeController::class, 'httpEcho']);
 });
