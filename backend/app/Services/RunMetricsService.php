@@ -11,6 +11,9 @@ class RunMetricsService
      *     total_count:int,
      *     success_count:int,
      *     failure_count:int,
+     *     timeout_count:int,
+     *     connection_failure_count:int,
+     *     duplicate_count:int,
      *     avg_latency_ms:float|null,
      *     p95_latency_ms:float|null,
      *     throughput_per_sec:float|null,
@@ -19,11 +22,24 @@ class RunMetricsService
      */
     public function computeForRun(Run $run): array
     {
-        $samples = $run->samples()->get(['latency_ms', 'success', 'sent_at', 'received_at', 'created_at']);
+        $samples = $run->samples()->get([
+            'latency_ms',
+            'success',
+            'sent_at',
+            'received_at',
+            'created_at',
+            'error_code',
+            'metadata',
+        ]);
 
         $totalCount = $samples->count();
         $successCount = $samples->where('success', true)->count();
         $failureCount = $totalCount - $successCount;
+        $timeoutCount = $samples->where('error_code', 'timeout')->count();
+        $connectionFailureCount = $samples->where('error_code', 'connection_error')->count();
+        $duplicateCount = $samples->filter(static function ($sample): bool {
+            return (bool) data_get($sample->metadata, 'dup', false);
+        })->count();
 
         $latencies = $samples
             ->pluck('latency_ms')
@@ -50,6 +66,9 @@ class RunMetricsService
             'total_count' => $totalCount,
             'success_count' => $successCount,
             'failure_count' => $failureCount,
+            'timeout_count' => $timeoutCount,
+            'connection_failure_count' => $connectionFailureCount,
+            'duplicate_count' => $duplicateCount,
             'avg_latency_ms' => $avgLatency,
             'p95_latency_ms' => $p95Latency,
             'throughput_per_sec' => $throughput,

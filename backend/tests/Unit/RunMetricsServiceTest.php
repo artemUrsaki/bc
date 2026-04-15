@@ -31,6 +31,7 @@ it('computes aggregate metrics from stored samples', function (): void {
         'latency_ms' => 50,
         'success' => true,
         'status_code' => 200,
+        'metadata' => ['dup' => false],
     ]);
 
     Sample::query()->create([
@@ -41,6 +42,7 @@ it('computes aggregate metrics from stored samples', function (): void {
         'latency_ms' => 120,
         'success' => true,
         'status_code' => 200,
+        'metadata' => ['dup' => true],
     ]);
 
     Sample::query()->create([
@@ -58,6 +60,9 @@ it('computes aggregate metrics from stored samples', function (): void {
     expect($metrics['total_count'])->toBe(3);
     expect($metrics['success_count'])->toBe(2);
     expect($metrics['failure_count'])->toBe(1);
+    expect($metrics['timeout_count'])->toBe(1);
+    expect($metrics['connection_failure_count'])->toBe(0);
+    expect($metrics['duplicate_count'])->toBe(1);
     expect($metrics['avg_latency_ms'])->toBe(85.0);
     expect($metrics['p95_latency_ms'])->toBe(116.5);
     expect($metrics['success_rate'])->toBe(66.67);
@@ -79,6 +84,9 @@ it('returns null latency metrics for a run without successful timings', function
     $metrics = app(RunMetricsService::class)->computeForRun($run);
 
     expect($metrics['total_count'])->toBe(0);
+    expect($metrics['timeout_count'])->toBe(0);
+    expect($metrics['connection_failure_count'])->toBe(0);
+    expect($metrics['duplicate_count'])->toBe(0);
     expect($metrics['avg_latency_ms'])->toBeNull();
     expect($metrics['p95_latency_ms'])->toBeNull();
     expect($metrics['throughput_per_sec'])->toBeNull();
