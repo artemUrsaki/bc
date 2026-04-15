@@ -14,8 +14,14 @@ class RunMetricsService
      *     timeout_count:int,
      *     connection_failure_count:int,
      *     duplicate_count:int,
+     *     retry_count:int,
+     *     reconnect_count:int,
      *     avg_latency_ms:float|null,
+     *     median_latency_ms:float|null,
+     *     min_latency_ms:float|null,
+     *     max_latency_ms:float|null,
      *     p95_latency_ms:float|null,
+     *     p99_latency_ms:float|null,
      *     throughput_per_sec:float|null,
      *     success_rate:float
      * }
@@ -40,6 +46,15 @@ class RunMetricsService
         $duplicateCount = $samples->filter(static function ($sample): bool {
             return (bool) data_get($sample->metadata, 'dup', false);
         })->count();
+        $retryCount = $run->events()
+            ->where('type', 'http.request.retrying')
+            ->count();
+        $reconnectCount = $run->events()
+            ->whereIn('type', [
+                'mqtt.connection.reconnect_attempted',
+                'mqtt.connection.reconnected',
+            ])
+            ->count();
 
         $latencies = $samples
             ->pluck('latency_ms')
@@ -51,9 +66,21 @@ class RunMetricsService
         $avgLatency = $latencies->isNotEmpty()
             ? round($latencies->sum() / $latencies->count(), 3)
             : null;
+        $medianLatency = $latencies->isNotEmpty()
+            ? $this->percentile($latencies->all(), 0.5)
+            : null;
+        $minLatency = $latencies->isNotEmpty()
+            ? round((float) $latencies->first(), 3)
+            : null;
+        $maxLatency = $latencies->isNotEmpty()
+            ? round((float) $latencies->last(), 3)
+            : null;
 
         $p95Latency = $latencies->isNotEmpty()
             ? $this->percentile($latencies->all(), 0.95)
+            : null;
+        $p99Latency = $latencies->isNotEmpty()
+            ? $this->percentile($latencies->all(), 0.99)
             : null;
 
         $throughput = $this->throughputPerSecond($samples->all());
@@ -69,8 +96,14 @@ class RunMetricsService
             'timeout_count' => $timeoutCount,
             'connection_failure_count' => $connectionFailureCount,
             'duplicate_count' => $duplicateCount,
+            'retry_count' => $retryCount,
+            'reconnect_count' => $reconnectCount,
             'avg_latency_ms' => $avgLatency,
+            'median_latency_ms' => $medianLatency,
+            'min_latency_ms' => $minLatency,
+            'max_latency_ms' => $maxLatency,
             'p95_latency_ms' => $p95Latency,
+            'p99_latency_ms' => $p99Latency,
             'throughput_per_sec' => $throughput,
             'success_rate' => $successRate,
         ];

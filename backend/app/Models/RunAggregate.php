@@ -19,21 +19,33 @@ class RunAggregate extends Model
         'connection_failure_count',
         'duplicate_count',
         'avg_latency_ms',
+        'median_latency_ms',
+        'min_latency_ms',
+        'max_latency_ms',
         'p95_latency_ms',
+        'p99_latency_ms',
         'throughput_per_sec',
         'success_rate',
+        'retry_count',
+        'reconnect_count',
     ];
 
     protected function casts(): array
     {
         return [
             'avg_latency_ms' => 'float',
+            'median_latency_ms' => 'float',
+            'min_latency_ms' => 'float',
+            'max_latency_ms' => 'float',
             'p95_latency_ms' => 'float',
+            'p99_latency_ms' => 'float',
             'throughput_per_sec' => 'float',
             'success_rate' => 'float',
             'timeout_count' => 'integer',
             'connection_failure_count' => 'integer',
             'duplicate_count' => 'integer',
+            'retry_count' => 'integer',
+            'reconnect_count' => 'integer',
         ];
     }
 
