@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import ExportButtons from '@/components/protocols/ExportButtons.vue'
 import MetricCard from '@/components/protocols/MetricCard.vue'
+import RunEventsTimeline from '@/components/protocols/RunEventsTimeline.vue'
+import RunSamplesTable from '@/components/protocols/RunSamplesTable.vue'
 import RunStatusCard from '@/components/protocols/RunStatusCard.vue'
 import { getApiToken, setApiToken } from '@/services/api'
 import { useExperimentsStore } from '@/stores/experiments'
@@ -42,8 +45,8 @@ const scenarioOptions: Record<ProtocolType, { value: string; label: string }[]> 
 
 const currentRun = computed(() => runsStore.current)
 const aggregate = computed(() => runsStore.aggregate)
-const latestEvents = computed(() => runsStore.events.slice(-5).reverse())
 const recentRuns = computed(() => runsStore.items.slice(0, 6))
+const canExport = computed(() => Boolean(currentRun.value))
 
 const summaryMetrics = computed(() => {
   if (!aggregate.value) {
@@ -350,30 +353,17 @@ async function loadRun(runId: number) {
         <p v-else class="mt-8 text-gray-400">No runs available yet.</p>
       </div>
 
-      <div class="rounded-xl border border-gray-500 bg-dark-blue p-8">
-        <p class="text-xs uppercase tracking-widest text-gray-400">Latest events</p>
-        <h2 class="mt-3 text-2xl sm:text-3xl">Execution timeline</h2>
-
-        <div v-if="latestEvents.length" class="mt-8 flex flex-col gap-4">
-          <div
-            v-for="event in latestEvents"
-            :key="event.id"
-            class="rounded-lg border border-gray-500 px-4 py-4"
-          >
-            <div class="flex items-center justify-between gap-4">
-              <p class="font-semibold text-white">{{ event.type }}</p>
-              <span class="text-xs uppercase tracking-widest text-gray-400">
-                {{ event.level }}
-              </span>
-            </div>
-            <p class="mt-2 text-sm text-gray-400">{{ event.message }}</p>
-            <p class="mt-2 text-xs text-gray-400">{{ event.occurred_at }}</p>
-          </div>
-        </div>
-        <p v-else class="mt-8 text-gray-400">
-          Start or load a run to see lifecycle and protocol events here.
-        </p>
+      <ExportButtons v-if="canExport" />
+      <div v-else class="rounded-xl border border-gray-500 bg-dark-blue p-8 text-gray-400">
+        <p class="text-xs uppercase tracking-widest">Export</p>
+        <h2 class="mt-3 text-2xl sm:text-3xl text-white">Download run data</h2>
+        <p class="mt-4">Load a run first to enable JSON and CSV export.</p>
       </div>
+    </div>
+
+    <div class="grid gap-8 lg:grid-cols-[1.15fr,0.85fr]">
+      <RunSamplesTable :samples="runsStore.samples" />
+      <RunEventsTimeline :events="runsStore.events" />
     </div>
   </section>
 </template>

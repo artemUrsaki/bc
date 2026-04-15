@@ -4,11 +4,10 @@ import type {
   Run,
   RunAggregate,
   RunEvent,
-  RunExportUrls,
   RunListFilters,
   RunSample,
 } from '@/types/run'
-import { api, buildApiUrl } from './api'
+import { api } from './api'
 
 export async function fetchRuns(filters: RunListFilters = {}) {
   const { data } = await api.get<ApiCollectionResponse<Run>>('/runs', {
@@ -46,9 +45,20 @@ export async function fetchRunEvents(runId: number) {
   return data
 }
 
-export function getRunExportUrls(runId: number): RunExportUrls {
-  return {
-    json: buildApiUrl(`/runs/${runId}/export?format=json`),
-    csv: buildApiUrl(`/runs/${runId}/export?format=csv`),
-  }
+export async function downloadRunExport(runId: number, format: 'json' | 'csv') {
+  const response = await api.get(`/runs/${runId}/export?format=${format}`, {
+    responseType: 'blob',
+  })
+
+  const contentType = response.headers['content-type'] ?? 'application/octet-stream'
+  const blob = new Blob([response.data], { type: contentType })
+  const objectUrl = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+
+  anchor.href = objectUrl
+  anchor.download = `run-${runId}.${format}`
+  document.body.appendChild(anchor)
+  anchor.click()
+  document.body.removeChild(anchor)
+  URL.revokeObjectURL(objectUrl)
 }

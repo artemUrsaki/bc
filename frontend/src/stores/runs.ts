@@ -2,12 +2,12 @@ import { defineStore } from 'pinia'
 import type { CreateRunPayload, Run, RunAggregate, RunEvent, RunListFilters, RunSample } from '@/types/run'
 import {
   createRun as createRunRequest,
+  downloadRunExport,
   fetchRun as fetchRunRequest,
   fetchRunAggregate as fetchRunAggregateRequest,
   fetchRunEvents as fetchRunEventsRequest,
   fetchRuns as fetchRunsRequest,
   fetchRunSamples as fetchRunSamplesRequest,
-  getRunExportUrls,
 } from '@/services/runs'
 
 interface RunsState {
@@ -33,9 +33,6 @@ export const useRunsStore = defineStore('runs', {
     error: null,
   }),
   getters: {
-    exportUrls(state) {
-      return state.current ? getRunExportUrls(state.current.id) : null
-    },
     isTerminal(state): boolean {
       return ['completed', 'failed', 'cancelled'].includes(state.current?.status ?? '')
     },
@@ -136,6 +133,13 @@ export const useRunsStore = defineStore('runs', {
       } finally {
         this.polling = false
       }
+    },
+    async exportCurrent(format: 'json' | 'csv') {
+      if (!this.current) {
+        throw new Error('No run selected for export.')
+      }
+
+      await downloadRunExport(this.current.id, format)
     },
     resetCurrent() {
       this.current = null
